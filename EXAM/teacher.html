@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم دار الرحمان - الإدارة والمعلم</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; }
+        #admin-content { display: none; }
+        .watermark-bg {
+            position: relative;
+            overflow: hidden;
+        }
+        .watermark-bg::before {
+            content: "";
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px; height: 250px;
+            background-image: url('logo.jpg');
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: contain;
+            border-radius: 50%;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: 0;
+            mix-blend-mode: multiply;
+        }
+        .watermark-bg > * { position: relative; z-index: 1; }
+    </style>
+</head>
+<body class="bg-slate-100 min-h-screen p-3 sm:p-6">
+
+    <div id="admin-content" class="max-w-5xl mx-auto bg-white rounded-2xl shadow-xl p-4 sm:p-8 border border-slate-200 watermark-bg">
+        
+        <!-- Header -->
+        <div class="flex flex-col sm:flex-row justify-between items-center border-b pb-4 mb-6 gap-4">
+            <div class="flex items-center gap-3">
+                <img src="teacher.jpeg" alt="صورة المعلم" class="w-14 h-14 rounded-full object-cover border-2 border-emerald-700 shadow-md">
+                <div>
+                    <h1 class="text-xl sm:text-2xl font-bold text-emerald-900">لوحة تحكم المعلم والإدارة ⚙️</h1>
+                    <p class="text-xs text-slate-500 mt-0.5">دار الرحمان لتحفيظ القرآن الكريم</p>
+                </div>
+            </div>
+            <a href="index.html" class="w-full sm:w-auto text-center bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl text-xs font-semibold transition">
+                العودة لبوابة الطلاب
+            </a>
+        </div>
+
+        <!-- Dashboard Buttons -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="bg-emerald-50 border border-emerald-200 p-4 rounded-2xl shadow-sm text-center">
+                <h2 class="text-sm font-bold text-emerald-900 mb-1">إنشاء امتحان جديد</h2>
+                <p class="text-[11px] text-emerald-700 mb-3">إعداد ونشر أسئلة وتوقيت.</p>
+                <button onclick="openExamBuilder()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-semibold py-2 px-3 rounded-xl text-xs transition shadow">
+                    ➕ إنشاء امتحان
+                </button>
+            </div>
+
+            <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl shadow-sm text-center">
+                <h2 class="text-sm font-bold text-amber-900 mb-1">الامتحانات الحالية</h2>
+                <p class="text-[11px] text-amber-700 mb-3">حذف أو تعديل الامتحانات.</p>
+                <button onclick="openReviewExams()" class="w-full bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-3 rounded-xl text-xs transition shadow">
+                    🔍 الامتحانات
+                </button>
+            </div>
+
+            <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl shadow-sm text-center">
+                <h2 class="text-sm font-bold text-blue-900 mb-1">الطلاب المسجلين</h2>
+                <p class="text-[11px] text-blue-700 mb-3">قائمة الحسابات التي أنشأت دخول.</p>
+                <button onclick="viewRegisteredStudents()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-3 rounded-xl text-xs transition shadow">
+                    👥 الطلاب المسجلين
+                </button>
+            </div>
+
+            <div class="bg-purple-50 border border-purple-200 p-4 rounded-2xl shadow-sm text-center">
+                <h2 class="text-sm font-bold text-purple-900 mb-1">نتائج وتصحيح الاختبارات</h2>
+                <p class="text-[11px] text-purple-700 mb-3">سجل إجابات ودرجات الطلاب.</p>
+                <button onclick="viewResults()" class="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-2 px-3 rounded-xl text-xs transition shadow">
+                    📊 درجات الاختبارات
+                </button>
+            </div>
+        </div>
+
+        <!-- Section 1: Exam Builder -->
+        <div id="examBuilderSection" class="hidden mt-8 border-t pt-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">إنشاء امتحان جديد</h3>
+            <form onsubmit="saveConfiguredExam(event)" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">المادة الدراسية</label>
+                        <select id="examSubject" required class="w-full px-3 py-2 border rounded-xl focus:outline-none bg-white text-xs">
+                            <option value="">اختر المادة...</option>
+                            <option value="القرآن الكريم والأطفال">القرآن الكريم والأطفال</option>
+                            <option value="أصول دين">أصول دين</option>
+                            <option value="فقه">فقه</option>
+                            <option value="مواد شرعية">مواد شرعية</option>
+                            <option value="تجويد">تجويد</option>
+                            <option value="اللغة العربية">اللغة العربية</option>
+                            <option value="غير ذلك">غير ذلك</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 mb-1">الصف الدراسي المستهدف</label>
+                        <select id="examGrade" required class="w-full px-3 py-2 border rounded-xl focus:outline-none bg-white text-xs">
+                            <option value="">اختر الصف...</option>
+                            <optgroup label="مرحلة الأطفال والبراعم">
+                                <option value="مرحلة الأطفال والبراعم">مرحلة الأطفال والبراعم</option>
+                            </optgroup>
+                            <optgroup label="المرحلة الابتدائية">
+                                <option value="الصف الأول الابتدائي">الأول الابتدائي</option>
+                                <option value="الصف الثاني الابتدائي">الثاني الابتدائي</option>
+                                <option value="الصف الثالث الابتدائي">الثالث الابتدائي</option>
+                                <option value="الصف الرابع الابتدائي">الرابع الابتدائي</option>
+                                <option value="الصف الخامس الابتدائي">الخامس الابتدائي</option>
+                                <option value="الصف السادس الابتدائي">السادس الابتدائي</option>
+                            </optgroup>
+                            <optgroup label="المرحلة الإعدادية">
+                                <option value="الصف الأول الإعدادي">الأول الإعدادي</option>
+                                <option value="الصف الثاني الإعدادي">الثاني الإعدادي</option>
+                                <option value="الصف الثالث الإعدادي">الثالث الإعدادي</option>
+                            </optgroup>
+                            <optgroup label="المرحلة الثانوية">
+                                <option value="الصف الأول الثانوي">الأول الثانوي</option>
+                                <option value="الصف الثاني الثانوي">الثاني الثانوي</option>
+                                <option value="الصف الثالث الثانوي">الثالث الثانوي</option>
+                            </optgroup>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">مدة الامتحان بالدفعات الزوجية</label>
+                    <select id="examDuration" required class="w-full px-3 py-2 border rounded-xl focus:outline-none bg-white text-xs">
+                        <option value="10">10 دقائق</option>
+                        <option value="20">20 دقيقة</option>
+                        <option value="30">30 دقيقة</option>
+                        <option value="40">40 دقيقة</option>
+                        <option value="50">50 دقيقة</option>
+                        <option value="60">60 دقيقة</option>
+                    </select>
+                </div>
+
+                <div class="border-t pt-4">
+                    <h4 class="text-sm font-bold text-emerald-900 mb-3">إضافة الأسئلة للامتحان</h4>
+                    <div id="questionsBuilderContainer" class="space-y-4"></div>
+
+                    <button type="button" onclick="addQuestionField()" class="mt-3 bg-amber-500 hover:bg-amber-600 text-white font-bold px-3 py-2 rounded-xl text-xs transition shadow">
+                        ➕ إضافة سؤال جديد
+                    </button>
+                </div>
+
+                <div class="flex gap-2 pt-4">
+                    <button type="submit" class="flex-1 bg-emerald-700 text-white py-2.5 rounded-xl font-bold hover:bg-emerald-800 transition text-xs shadow">حفظ ونشر الامتحان 💾</button>
+                    <button type="button" onclick="closeAllSections()" class="bg-slate-300 text-slate-700 py-2.5 px-4 rounded-xl font-bold hover:bg-slate-400 transition text-xs">إلغاء</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Section 2: Review Exams -->
+        <div id="reviewExamsSection" class="hidden mt-8 border-t pt-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">الامتحانات المتاحة</h3>
+            <div id="examsListContainer" class="space-y-3"></div>
+        </div>
+
+        <!-- Section 3: Registered Students List (مين سجل الدخول) -->
+        <div id="registeredStudentsSection" class="hidden mt-8 border-t pt-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">👥 سجل الطلاب الذين أنشأوا حسابات على المنصة</h3>
+            <div class="overflow-x-auto rounded-xl border border-slate-200 shadow-sm">
+                <table class="w-full text-right text-xs text-slate-700">
+                    <thead class="bg-emerald-50 text-emerald-950 font-bold border-b border-emerald-100">
+                        <tr>
+                            <th class="p-3">#</th>
+                            <th class="p-3">اسم الطالب</th>
+                            <th class="p-3">الصف الدراسي</th>
+                            <th class="p-3">رقم هاتف الطالب</th>
+                            <th class="p-3">رقم ولي الأمر</th>
+                        </tr>
+                    </thead>
+                    <tbody id="registeredStudentsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Section 4: Student Exam Results & Grading -->
+        <div id="resultsSection" class="hidden mt-8 border-t pt-6">
+            <h3 class="text-lg font-bold text-slate-800 mb-4">📊 تصحيح إجابات الطلاب وسجل الدرجات النهائي</h3>
+            <div id="resultsListContainer" class="space-y-4"></div>
+        </div>
+
+    </div>
+
+    <script>
+        const ADMIN_PASSWORD = "2906";
+        let questionCount = 0;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            let password = prompt("⚠️ لوحة تحكم المعلم محمية. يرجى إدخال كلمة السر:");
+            if (password !== ADMIN_PASSWORD) {
+                alert("❌ كلمة السر غير صحيحة! سيتم توجيهك لصفحة الطلاب.");
+                window.location.href = "index.html";
+            } else {
+                document.getElementById('admin-content').style.display = 'block';
+            }
+        });
+
+        function closeAllSections() {
+            document.getElementById('examBuilderSection').classList.add('hidden');
+            document.getElementById('reviewExamsSection').classList.add('hidden');
+            document.getElementById('registeredStudentsSection').classList.add('hidden');
+            document.getElementById('resultsSection').classList.add('hidden');
+        }
+
+        function openExamBuilder() {
+            closeAllSections();
+            document.getElementById('questionsBuilderContainer').innerHTML = '';
+            questionCount = 0;
+            addQuestionField();
+            document.getElementById('examBuilderSection').classList.remove('hidden');
+        }
+
+        function addQuestionField() {
+            questionCount++;
+            const container = document.getElementById('questionsBuilderContainer');
+            const qDiv = document.createElement('div');
+            qDiv.className = "bg-slate-50 p-4 rounded-xl border border-slate-200 relative space-y-3";
+            qDiv.id = `q_block_${questionCount}`;
+
+            qDiv.innerHTML = `
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-emerald-800">السؤال رقم (${questionCount})</span>
+                    <button type="button" onclick="removeQuestionField('q_block_${questionCount}')" class="text-red-500 hover:text-red-700 text-xs font-bold">حذف 🗑️</button>
+                </div>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">نوع السؤال</label>
+                        <select onchange="handleTypeChange(this, ${questionCount})" required class="q-type w-full px-2.5 py-1.5 border rounded-lg bg-white text-xs">
+                            <option value="mcq">اختيار من متعدد</option>
+                            <option value="tf">صح أم خطأ</option>
+                            <option value="complete">أكمل (مقالي)</option>
+                            <option value="reason">علل (مقالي)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-bold text-slate-600 mb-1">نص السؤال</label>
+                        <input type="text" required placeholder="اكتب السؤال هنا..." class="q-text w-full px-2.5 py-1.5 border rounded-lg text-xs">
+                    </div>
+                </div>
+
+                <div id="type_options_${questionCount}" class="space-y-2">
+                    <label class="block text-[11px] font-bold text-slate-600">الخيارات (افصل بينها بـ فارزة ,)</label>
+                    <input type="text" placeholder="خيار 1, خيار 2, خيار 3" class="q-options w-full px-2.5 py-1.5 border rounded-lg text-xs bg-white">
+                    <label class="block text-[11px] font-bold text-slate-600">الإجابة الصحيحة بالضبط</label>
+                    <input type="text" placeholder="اكتب الخيار الصحيح للتقييم التلقائي" class="q-correct w-full px-2.5 py-1.5 border rounded-lg text-xs bg-white">
+                </div>
+            `;
+            container.appendChild(qDiv);
+        }
+
+        function removeQuestionField(id) {
+            document.getElementById(id)?.remove();
+        }
+
+        function handleTypeChange(selectElem, id) {
+            const optDiv = document.getElementById(`type_options_${id}`);
+            const val = selectElem.value;
+
+            if (val === 'mcq') {
+                optDiv.innerHTML = `
+                    <label class="block text-[11px] font-bold text-slate-600">الخيارات (افصل بينها بـ فارزة ,)</label>
+                    <input type="text" placeholder="خيار 1, خيار 2, خيار 3" class="q-options w-full px-2.5 py-1.5 border rounded-lg text-xs bg-white">
+                    <label class="block text-[11px] font-bold text-slate-600">الإجابة الصحيحة بالضبط</label>
+                    <input type="text" placeholder="اكتب الخيار الصحيح للتقييم التلقائي" class="q-correct w-full px-2.5 py-1.5 border rounded-lg text-xs bg-white">`;
+            } else if (val === 'tf') {
+                optDiv.innerHTML = `
+                    <label class="block text-[11px] font-bold text-slate-600">الإجابة الصحيحة</label>
+                    <select class="q-correct w-full px-2.5 py-1.5 border rounded-lg text-xs bg-white">
+                        <option value="صح">صح</option>
+                        <option value="خطأ">خطأ</option>
+                    </select>`;
+            } else {
+                optDiv.innerHTML = `<p class="text-[11px] text-amber-700 italic">هذا السؤال مقالي، وسيتم إرسال إجابة الطالب للوحة التحكم هنا لتقوم أنت بتصحيحها.</p>`;
+            }
+        }
+
+        function saveConfiguredExam(event) {
+            event.preventDefault();
+            const subject = document.getElementById('examSubject').value;
+            const grade = document.getElementById('examGrade').value;
+            const duration = document.getElementById('examDuration').value;
+
+            const qBlocks = document.querySelectorAll('#questionsBuilderContainer > div');
+            const questions = [];
+
+            qBlocks.forEach(b => {
+                const type = b.querySelector('.q-type').value;
+                const qText = b.querySelector('.q-text').value;
+                let options = [];
+                let correctAnswer = '';
+
+                if (type === 'mcq') {
+                    const optsVal = b.querySelector('.q-options')?.value || '';
+                    options = optsVal.split(',').map(s => s.trim()).filter(Boolean);
+                    correctAnswer = b.querySelector('.q-correct')?.value.trim() || '';
+                } else if (type === 'tf') {
+                    correctAnswer = b.querySelector('.q-correct')?.value || 'صح';
+                }
+
+                questions.push({ type, qText, options, correctAnswer });
+            });
+
+            const newExam = { id: Date.now().toString(), subject, grade, duration, questions };
+
+            let allExams = JSON.parse(localStorage.getItem('configuredExams')) || [];
+            allExams.push(newExam);
+            localStorage.setItem('configuredExams', JSON.stringify(allExams));
+
+            alert("✅ تم نشر الامتحان بنجاح وبات متاحاً للطلاب!");
+            closeAllSections();
+        }
+
+        function openReviewExams() {
+            closeAllSections();
+            const container = document.getElementById('examsListContainer');
+            document.getElementById('reviewExamsSection').classList.remove('hidden');
+
+            const allExams = JSON.parse(localStorage.getItem('configuredExams')) || [];
+            if (allExams.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 border rounded-xl">لا توجد امتحانات متاحة حالياً.</div>`;
+                return;
+            }
+
+            container.innerHTML = allExams.map(e => `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 flex justify-between items-center shadow-sm">
+                    <div>
+                        <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold px-2 py-0.5 rounded">${e.grade}</span>
+                        <span class="bg-amber-100 text-amber-800 text-[10px] font-bold px-2 py-0.5 rounded">${e.subject}</span>
+                        <h4 class="font-bold text-slate-800 text-sm mt-1">امتحان مادة: ${e.subject}</h4>
+                        <p class="text-xs text-slate-500">⏱️ المدة: ${e.duration} دقيقة | 📝 الأسئلة: ${e.questions.length}</p>
+                    </div>
+                    <button onclick="deleteExam('${e.id}')" class="text-xs text-red-600 bg-red-50 hover:bg-red-100 font-bold px-3 py-1.5 rounded-lg transition">حذف 🗑️</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteExam(id) {
+            if (confirm("هل تريد حذف هذا النموذج؟")) {
+                let allExams = JSON.parse(localStorage.getItem('configuredExams')) || [];
+                allExams = allExams.filter(e => e.id !== id);
+                localStorage.setItem('configuredExams', JSON.stringify(allExams));
+                openReviewExams();
+            }
+        }
+
+        // عرض قائمة الطلاب الذين سجلوا الدخول
+        function viewRegisteredStudents() {
+            closeAllSections();
+            const section = document.getElementById('registeredStudentsSection');
+            const tbody = document.getElementById('registeredStudentsTableBody');
+            section.classList.remove('hidden');
+
+            const studentsList = JSON.parse(localStorage.getItem('allStudentsList')) || [];
+
+            if (studentsList.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center p-4 text-slate-400">لا يوجد أي طلاب مسجلين حتى الآن.</td></tr>`;
+            } else {
+                tbody.innerHTML = studentsList.map((s, idx) => `
+                    <tr class="border-b hover:bg-slate-50 transition">
+                        <td class="p-3 font-bold text-slate-400">${idx + 1}</td>
+                        <td class="p-3 font-bold text-slate-800">${s.name}</td>
+                        <td class="p-3 text-emerald-800 font-semibold">${s.grade}</td>
+                        <td class="p-3 font-mono dir-ltr text-right">${s.phone}</td>
+                        <td class="p-3 font-mono dir-ltr text-right">${s.parentPhone}</td>
+                    </tr>
+                `).join('');
+            }
+        }
+
+        // عرض نتائج إجابات الطلاب
+        function viewResults() {
+            closeAllSections();
+            const container = document.getElementById('resultsListContainer');
+            document.getElementById('resultsSection').classList.remove('hidden');
+
+            const results = JSON.parse(localStorage.getItem('examResults')) || [];
+            if (results.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-xs text-slate-400 border rounded-xl">لا توجد امتحانات مسلمة حتى الآن.</div>`;
+                return;
+            }
+
+            container.innerHTML = results.map(r => `
+                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm space-y-3">
+                    <div class="flex justify-between items-start border-b pb-2">
+                        <div>
+                            <h4 class="font-bold text-slate-800 text-sm">${r.studentName} (${r.grade})</h4>
+                            <p class="text-xs text-slate-500">هاتف الطالب: ${r.studentPhone} | ولي الأمر: ${r.parentPhone}</p>
+                            <p class="text-[11px] text-emerald-700 font-semibold mt-0.5">${r.examSubject} - ${r.date}</p>
+                        </div>
+                        <div class="text-left">
+                            <span class="bg-indigo-100 text-indigo-900 font-bold text-xs px-3 py-1 rounded-lg">
+                                الدرجة: ${r.score} / ${r.total}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        ${r.answers.map((a, idx) => `
+                            <div class="bg-slate-50 p-2.5 rounded-lg text-xs">
+                                <p class="font-bold text-slate-800">س${idx+1}:${a.qText}</p>
+                                <p class="text-emerald-700 font-semibold mt-1">إجابة الطالب: ${a.studentAnswer}</p>${a.correctAnswer ? `<p class="text-slate-400 text-[10px]">الإجابة النموذجية: ${a.correctAnswer}</p>` : ''}
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    ${!r.graded ? `
+                        <div class="flex gap-2 pt-2 border-t">
+                            <input type="number" id="grade_input_${r.id}" placeholder="ضع الدرجة من ${r.total}" class="px-3 py-1.5 border rounded-lg text-xs flex-1">
+                            <button onclick="saveManualGrading('${r.id}')" class="bg-emerald-700 text-white font-bold px-4 py-1.5 rounded-lg text-xs hover:bg-emerald-800 transition">اعتماد الدرجة 💾</button>
+                        </div>
+                    ` : `<p class="text-[11px] text-emerald-700 font-bold text-left">✅ تم اعتماد وتصحيح هذا الامتحان.</p>`}
+                </div>
+            `).join('');
+        }
+
+        function saveManualGrading(resultId) {
+            const finalScore = document.getElementById(`grade_input_${resultId}`).value;
+            if (finalScore === '') { alert("يرجى إدخال الدرجة أولاً"); return; }
+
+            let results = JSON.parse(localStorage.getItem('examResults')) || [];
+            const res = results.find(r => r.id === resultId);
+            if (res) {
+                res.score = parseFloat(finalScore);
+                res.graded = true;
+                localStorage.setItem('examResults', JSON.stringify(results));
+                alert("✅ تم حفظ واعتمد الدرجة بنجاح!");
+                viewResults();
+            }
+        }
+    </script>
+</body>
+</html>
